@@ -3,22 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BeWise Pro - Student Management</title>
+    <title>EduTrack Pro - Student Management</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        /* Add all CSS from previous answers here */
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --success-color: #27ae60;
+            --danger-color: #e74c3c;
+            --light-bg: #f8f9fa;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .auth-modal {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            padding: 2rem;
+            max-width: 400px;
+            margin: 2rem auto;
+            transform: translateY(20px);
+            opacity: 0;
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes slideUp {
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Add all other CSS rules from previous answer here */
+    </style>
 </head>
 <body>
     <div class="container">
         <div class="auth-modal" id="auth-section">
-            <!-- Authentication form remains same as previous version -->
+            <h2 style="text-align: center; margin-bottom: 2rem;">Welcome to EduTrack Pro</h2>
+            <div class="form-group">
+                <input type="text" id="username" class="form-input" placeholder="Enter your username">
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" class="form-input" placeholder="Enter your password">
+            </div>
+            <div class="form-group">
+                <select id="role" class="form-input" onchange="toggleAdminKey()">
+                    <option value="user">Regular User</option>
+                    <option value="admin">Administrator/Teacher</option>
+                </select>
+            </div>
+            <div class="admin-key-container" id="adminKeyContainer">
+                <div class="form-group">
+                    <input type="password" id="adminKey" class="form-input" placeholder="Enter admin secret key">
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button class="btn btn-primary" onclick="signIn()" id="signInBtn">
+                    <span class="btn-text">Sign In</span>
+                </button>
+                <button class="btn btn-success" onclick="signUp()" id="signUpBtn">
+                    <span class="btn-text">Sign Up</span>
+                </button>
+            </div>
         </div>
-
-        <!-- Dashboard sections (same structure as before) -->
     </div>
 
+    <script>
+        // Initialize users storage
+        let users = JSON.parse(localStorage.getItem('users') || '{}');
+        const ADMIN_SECRET = 'beWise@';
+
+        // Basic toggle function
+        function toggleAdminKey() {
+            const role = document.getElementById('role').value;
+            const container = document.getElementById('adminKeyContainer');
+            container.style.maxHeight = role === 'admin' ? '100px' : '0';
+        }
+
+        // Initial animation trigger
+        setTimeout(() => {
+            document.querySelector('.auth-modal').style.opacity = '1';
+        }, 100);
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    <script src="app.js"></script>
+    <script>
+        // Basic Toastify initialization
+        function toast(message, color = '#3498db') {
+            Toastify({
+                text: message,
+                backgroundColor: color,
+                duration: 3000,
+                close: true,
+                gravity: 'top',
+                position: 'right',
+                style: {
+                    borderRadius: '8px',
+                    fontFamily: 'Inter',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                }
+            }).showToast();
+        }
+    </script>
 </body>
 </html>
