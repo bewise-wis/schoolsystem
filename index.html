@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Report Card System</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
@@ -14,10 +14,8 @@
       padding: 20px;
       background-color: #f5f5f5;
     }
-    h1 {
-      color: #2c3e50;
+    h1, h2 {
       text-align: center;
-      margin-bottom: 30px;
     }
     .panel, .auth-panel {
       background-color: white;
@@ -26,31 +24,18 @@
       margin-bottom: 20px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .form-group {
-      margin-bottom: 15px;
-    }
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: bold;
-      color: #34495e;
-    }
-    input, select {
+    input, button {
       width: 100%;
       padding: 10px;
-      border: 1px solid #ddd;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
       border-radius: 4px;
       font-size: 1rem;
     }
     button {
       background-color: #3498db;
       color: white;
-      border: none;
-      padding: 10px 15px;
-      border-radius: 4px;
       cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s;
     }
     button:hover {
       background-color: #2980b9;
@@ -61,96 +46,129 @@
     .btn-success:hover {
       background-color: #27ae60;
     }
-    #auth-container {
-      display: none;
-    }
-    #main-app {
-      display: none;
-    }
   </style>
 </head>
 <body>
   <h1>Student Report Card System</h1>
 
-  <div id="auth-container" class="auth-panel">
+  <div class="auth-panel" id="auth-panel">
     <h2>Sign In / Sign Up</h2>
-    <div class="form-group">
-      <label for="auth-username">Username</label>
-      <input type="text" id="auth-username" placeholder="Enter username">
-    </div>
-    <div class="form-group">
-      <label for="auth-password">Password</label>
-      <input type="password" id="auth-password" placeholder="Enter password">
-    </div>
-    <button onclick="login()">Sign In</button>
-    <button onclick="signup()">Sign Up</button>
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
+    <button onclick="signUp()">Sign Up</button>
+    <button onclick="signIn()">Sign In</button>
   </div>
 
-  <div id="main-app">
-    <!-- Existing report card system here (shortened for brevity) -->
-    <p>Welcome, <span id="logged-user"></span>! <button onclick="logout()">Logout</button></p>
-    <!-- PLACEHOLDER: All your current student report card system HTML goes here -->
+  <div id="main-content" style="display:none;">
+    <div class="panel">
+      <h2>Add New Student</h2>
+      <input type="text" id="student-name" placeholder="Student Name">
+      <input type="text" id="student-class" placeholder="Class">
+      <input type="text" id="subject" placeholder="Subject">
+      <input type="number" id="mark" placeholder="Mark out of 20" min="0" max="20">
+      <button class="btn-success" onclick="saveStudent()">Save Student</button>
+    </div>
+
+    <div class="panel">
+      <h2>Generate Report</h2>
+      <button onclick="generatePDF()">Export to PDF</button>
+      <button onclick="signOut()">Sign Out</button>
+    </div>
   </div>
 
   <script>
-    const authContainer = document.getElementById('auth-container');
-    const mainApp = document.getElementById('main-app');
-    const loggedUserSpan = document.getElementById('logged-user');
+    const { jsPDF } = window.jspdf;
 
-    function getUsers() {
-      return JSON.parse(localStorage.getItem('users') || '[]');
+    function getCurrentUser() {
+      return localStorage.getItem("currentUser");
     }
 
-    function saveUser(user) {
-      const users = getUsers();
-      users.push(user);
-      localStorage.setItem('users', JSON.stringify(users));
+    function getStudents() {
+      const user = getCurrentUser();
+      if (!user) return [];
+      return JSON.parse(localStorage.getItem(user + "_students")) || [];
     }
 
-    function signup() {
-      const username = document.getElementById('auth-username').value.trim();
-      const password = document.getElementById('auth-password').value.trim();
-      if (!username || !password) return alert('Please enter all fields');
+    function saveStudents(students) {
+      const user = getCurrentUser();
+      localStorage.setItem(user + "_students", JSON.stringify(students));
+    }
 
-      const users = getUsers();
-      if (users.some(u => u.username === username)) {
-        return alert('Username already exists');
+    function signUp() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      if (users[username]) {
+        alert("User already exists!");
+        return;
       }
-
-      saveUser({ username, password });
-      alert('Account created successfully! Please sign in.');
+      users[username] = password;
+      localStorage.setItem("users", JSON.stringify(users));
+      alert("User created! Please sign in.");
     }
 
-    function login() {
-      const username = document.getElementById('auth-username').value.trim();
-      const password = document.getElementById('auth-password').value.trim();
-      const users = getUsers();
-
-      const found = users.find(u => u.username === username && u.password === password);
-      if (!found) return alert('Invalid credentials');
-
-      localStorage.setItem('loggedInUser', username);
-      showMainApp();
+    function signIn() {
+      const username = document.getElementById("username").value;
+      const password = document.getElementById("password").value;
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      if (users[username] === password) {
+        localStorage.setItem("currentUser", username);
+        document.getElementById("auth-panel").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+        alert("Welcome " + username);
+      } else {
+        alert("Invalid credentials");
+      }
     }
 
-    function logout() {
-      localStorage.removeItem('loggedInUser');
+    function signOut() {
+      localStorage.removeItem("currentUser");
       location.reload();
     }
 
-    function showMainApp() {
-      const user = localStorage.getItem('loggedInUser');
-      if (user) {
-        authContainer.style.display = 'none';
-        mainApp.style.display = 'block';
-        loggedUserSpan.textContent = user;
-      } else {
-        authContainer.style.display = 'block';
-        mainApp.style.display = 'none';
+    function saveStudent() {
+      const name = document.getElementById("student-name").value;
+      const level = document.getElementById("student-class").value;
+      const subject = document.getElementById("subject").value;
+      const mark = parseFloat(document.getElementById("mark").value);
+      if (!name || !level || !subject || isNaN(mark)) {
+        alert("Please fill all fields correctly.");
+        return;
       }
+      const students = getStudents();
+      students.push({ name, level, subject, mark });
+      saveStudents(students);
+      alert("Student saved!");
     }
 
-    document.addEventListener('DOMContentLoaded', showMainApp);
+    function generatePDF() {
+      const students = getStudents();
+      if (students.length === 0) {
+        alert("No students to export.");
+        return;
+      }
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Student Report", 14, 20);
+
+      const headers = [["No.", "Name", "Class", "Subject", "Mark"]];
+      const rows = students.map((s, i) => [i + 1, s.name, s.level, s.subject, s.mark]);
+
+      doc.autoTable({
+        head: headers,
+        body: rows,
+        startY: 30
+      });
+
+      doc.save("Student_Report.pdf");
+    }
+
+    window.onload = function () {
+      if (getCurrentUser()) {
+        document.getElementById("auth-panel").style.display = "none";
+        document.getElementById("main-content").style.display = "block";
+      }
+    }
   </script>
 </body>
 </html>
