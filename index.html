@@ -19,7 +19,7 @@
       text-align: center;
       margin-bottom: 30px;
     }
-    .panel {
+    .panel, .student-card {
       background-color: white;
       border-radius: 8px;
       padding: 20px;
@@ -30,9 +30,6 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 15px;
-    }
-    .form-group {
-      margin-bottom: 15px;
     }
     label {
       display: block;
@@ -66,19 +63,6 @@
     .btn-success:hover {
       background-color: #27ae60;
     }
-    .student-card {
-      background-color: white;
-      border-radius: 8px;
-      padding: 20px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .student-card h3 {
-      margin-top: 0;
-      color: #2c3e50;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
-    }
     .subject-row {
       display: flex;
       gap: 10px;
@@ -89,6 +73,7 @@
     }
     .controls {
       display: flex;
+      flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 20px;
     }
@@ -100,15 +85,15 @@
   <div class="panel">
     <h2>Add New Student</h2>
     <div class="student-form">
-      <div class="form-group">
+      <div>
         <label for="student-name">Student Name</label>
         <input type="text" id="student-name" placeholder="Enter student Name" />
       </div>
-      <div class="form-group">
+      <div>
         <label for="student-class">Class</label>
         <input type="text" id="student-class" placeholder="Enter Class" />
       </div>
-      <div class="form-group" style="grid-column: span 2;">
+      <div style="grid-column: span 2;">
         <label>Subjects and Marks</label>
         <div id="subjects-container">
           <div class="subject-row">
@@ -128,6 +113,7 @@
     <button id="calculate-all" class="btn-success">Calculate Averages</button>
     <button id="rank-students" class="btn-success">Rank Students</button>
     <button id="generate-all-pdf" class="btn-success">Generate PDF</button>
+    <button onclick="clearAllData()">Clear All Data</button>
   </div>
 
   <div id="students-list"></div>
@@ -146,6 +132,11 @@
     const generateAllPdfBtn = document.getElementById('generate-all-pdf');
 
     document.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem("students");
+      if (saved) {
+        students = JSON.parse(saved);
+        nextId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+      }
       renderStudents();
     });
 
@@ -189,6 +180,8 @@
         rank: null
       });
 
+      localStorage.setItem("students", JSON.stringify(students));
+
       document.getElementById('student-name').value = '';
       document.getElementById('student-class').value = '';
       document.getElementById('subjects-container').innerHTML = `
@@ -206,6 +199,7 @@
         student.average = (total / student.subjects.length).toFixed(2);
         student.status = student.average >= 10 ? 'Passed' : 'Failed';
       });
+      localStorage.setItem("students", JSON.stringify(students));
       renderStudents();
       alert('Averages calculated!');
     });
@@ -215,6 +209,7 @@
       students.forEach((student, i) => {
         student.rank = i + 1;
       });
+      localStorage.setItem("students", JSON.stringify(students));
       renderStudents();
       alert('Students ranked!');
     });
@@ -256,17 +251,11 @@
 
     function generatePdf(student) {
       const doc = new jsPDF();
-      const pageWidth = doc.internal.pageSize.getWidth();
-
       doc.setFontSize(16);
-      doc.setTextColor(40, 53, 147);
       doc.text("ST. WISEMAN ACADEMY", 105, 20, { align: "center" });
-
       doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
       doc.text("123 Education Street, Learning City", 105, 28, { align:"center" });
       doc.text("Phone: (+237) 671657357 | Email: wisdombesong123@gmail.com", 105, 34, { align: "center" });
-
       doc.setFontSize(14);
       doc.text("ACADEMIC REPORT CARD", 105, 45, { align: "center" });
 
@@ -301,6 +290,15 @@
       if (mark >= 12) return 'C';
       if (mark >= 10) return 'D';
       return 'F';
+    }
+
+    function clearAllData() {
+      if (confirm("Are you sure you want to clear all student data?")) {
+        localStorage.removeItem("students");
+        students = [];
+        nextId = 1;
+        renderStudents();
+      }
     }
   </script>
 </body>
