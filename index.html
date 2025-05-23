@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Report Card System</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
@@ -20,7 +20,6 @@
       text-align: center;
       color: #2c3e50;
     }
-    /* Panels styling */
     .panel, .auth-panel, .user-panel {
       background-color: #ffffff;
       border-radius: 8px;
@@ -28,10 +27,6 @@
       margin-bottom: 20px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
       transition: all 0.3s ease-in-out;
-    }
-    /* Slightly different background for user panel */
-    .user-panel {
-      background-color: #e8f0fe;
     }
     .form-group, .auth-form {
       margin-bottom: 15px;
@@ -42,7 +37,8 @@
       font-weight: bold;
     }
     input, select {
-      width: 100%;
+      width: 90%;
+      margin: 13px;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -88,24 +84,17 @@
 <body>
   <h1>Student Report Card System</h1>
 
-  <!-- Authentication Panel -->
   <div class="auth-panel" id="auth-section">
     <h2>User Authentication</h2>
     <div class="auth-form">
-      <input type="text" id="username" placeholder="Username" />
-      <input type="password" id="password" placeholder="Password" />
-      <select id="role">
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <!--select id="role">
         <option value="regular">Regular User</option>
         <option value="teacher">Teacher</option>
         <option value="admin">Admin</option>
       </select>
-      <!-- Secret key is shown only for teacher/admin -->
-      <input
-        type="text"
-        id="secret-key"
-        placeholder="Secret Key (required for teacher/admin)"
-        style="display:none"
-      />
+      <input type="text" id="secret-key" placeholder="Secret Key (required for teacher/admin)"-->
       <div style="margin-top: 10px">
         <button onclick="signIn()">Sign In</button>
         <button class="btn-success" onclick="signUp()">Sign Up</button>
@@ -113,16 +102,15 @@
     </div>
   </div>
 
-  <!-- Admin/Teacher Panel -->
   <div class="panel" id="main-section" style="display:none">
-    <h2>Admin / Teacher Panel - Add New Student</h2>
+    <h2>Add New Student</h2>
     <div class="form-group">
       <label>Student Name</label>
-      <input type="text" id="student-name" />
+      <input type="text" id="student-name">
     </div>
     <div class="form-group">
       <label>Class</label>
-      <input type="text" id="student-class" />
+      <input type="text" id="student-class">
     </div>
     <div class="form-group">
       <label>Subjects and Marks</label>
@@ -132,173 +120,135 @@
     <button class="btn-success" onclick="saveStudent()">Save Student</button>
   </div>
 
-  <!-- Controls only for Admin/Teacher -->
   <div class="controls" id="controls-section" style="display:none">
     <button onclick="calculateAll()">Calculate Averages</button>
     <button onclick="rankStudents()">Rank Students</button>
     <button onclick="generateAllPDF()">Generate All PDF</button>
   </div>
 
-  <!-- Regular User Panel -->
   <div class="user-panel" id="user-section" style="display:none">
-    <h2>Regular User Panel - View Student Reports</h2>
+    <h2>View Student Reports</h2>
     <div id="students-list-user"></div>
   </div>
 
-  <!-- Admin/Teacher student list -->
   <div id="students-list"></div>
 
   <script>
     const { jsPDF } = window.jspdf;
     let students = [];
-    let users = JSON.parse(localStorage.getItem("users")) || {};
+    let users = JSON.parse(localStorage.getItem('users')) || {};
     let currentUser = null;
 
-    // Show/hide secret key input based on role selected
-    document.getElementById("role").addEventListener("change", (e) => {
-      const role = e.target.value;
-      const secretInput = document.getElementById("secret-key");
-      if (role === "teacher" || role === "admin") {
-        secretInput.style.display = "block";
-      } else {
-        secretInput.style.display = "none";
-      }
-    });
-
-    function toast(message, color = "#3498db") {
+    function toast(message, color = '#3498db') {
       Toastify({ text: message, backgroundColor: color, duration: 3000 }).showToast();
     }
 
     function signIn() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
       if (users[username] && users[username].password === password) {
         currentUser = username;
         students = users[username].students || [];
-
-        document.getElementById("auth-section").style.display = "none";
-
-        if (users[username].role === "regular") {
-          // Regular user view
-          document.getElementById("user-section").style.display = "block";
+        document.getElementById('auth-section').style.display = 'none';
+        if (users[username].role === 'regular') {
+          document.getElementById('user-section').style.display = 'block';
           renderStudents(true);
         } else {
-          // Teacher/Admin view
-          document.getElementById("main-section").style.display = "block";
-          document.getElementById("controls-section").style.display = "flex";
+          document.getElementById('main-section').style.display = 'block';
+          document.getElementById('controls-section').style.display = 'flex';
           renderStudents();
         }
-
-        toast("Signed in successfully!", "#2ecc71");
+        toast('Signed in successfully!', '#2ecc71');
       } else {
-        toast("Invalid credentials", "#e74c3c");
+        toast('Invalid credentials', '#e74c3c');
       }
     }
 
     function signUp() {
-      const username = document.getElementById("username").value.trim();
-      const password = document.getElementById("password").value.trim();
-      const role = document.getElementById("role").value;
-      const secret = document.getElementById("secret-key").value.trim();
-
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value.trim();
+      const role = document.getElementById('role').value;
+      const secret = document.getElementById('secret-key').value.trim();
       if (users[username]) {
-        toast("Username already exists", "#e74c3c");
+        toast('Username already exists', '#e74c3c');
         return;
       }
-
-      // Validate secret key for teacher/admin roles only
-      if ((role === "teacher" || role === "admin") && secret !== "bewise@") {
-        toast("Invalid secret key for " + role, "#e74c3c");
+      if ((role === 'teacher' || role === 'admin') && secret !== 'bewise@') {
+        toast('Invalid secret key for ' + role, '#e74c3c');
         return;
       }
-
       users[username] = { password, role, students: [] };
-      localStorage.setItem("users", JSON.stringify(users));
-
-      toast("Account created & signed in!", "#2ecc71");
-
+      localStorage.setItem('users', JSON.stringify(users));
+      toast('Account created & signed in!', '#2ecc71');
       currentUser = username;
       students = [];
-
-      document.getElementById("auth-section").style.display = "none";
-
-      if (role === "regular") {
-        document.getElementById("user-section").style.display = "block";
+      document.getElementById('auth-section').style.display = 'none';
+      if (role === 'regular') {
+        document.getElementById('user-section').style.display = 'block';
         renderStudents(true);
       } else {
-        document.getElementById("main-section").style.display = "block";
-        document.getElementById("controls-section").style.display = "flex";
+        document.getElementById('main-section').style.display = 'block';
+        document.getElementById('controls-section').style.display = 'flex';
         renderStudents();
       }
     }
 
     function addSubject() {
-      const div = document.createElement("div");
-      div.innerHTML = `<input placeholder="Subject" class="subject-name" /> <input type="number" placeholder="Mark" class="subject-mark" />`;
-      document.getElementById("subjects-container").appendChild(div);
+      const div = document.createElement('div');
+      div.innerHTML = `<input placeholder="Subject" class="subject-name"/> <input type="number" placeholder="Mark" class="subject-mark"/>`;
+      document.getElementById('subjects-container').appendChild(div);
     }
 
     function saveStudent() {
-      const name = document.getElementById("student-name").value.trim();
-      const className = document.getElementById("student-class").value.trim();
-      const subjectEls = document.querySelectorAll("#subjects-container div");
+      const name = document.getElementById('student-name').value.trim();
+      const className = document.getElementById('student-class').value.trim();
+      const subjectEls = document.querySelectorAll('#subjects-container div');
       const subjects = [];
-      subjectEls.forEach((row) => {
-        const name = row.querySelector(".subject-name").value.trim();
-        const mark = parseFloat(row.querySelector(".subject-mark").value);
+      subjectEls.forEach(row => {
+        const name = row.querySelector('.subject-name').value.trim();
+        const mark = parseFloat(row.querySelector('.subject-mark').value);
         if (name && !isNaN(mark)) subjects.push({ name, mark });
       });
-
       if (!name || !className || subjects.length === 0) {
-        toast("Please complete all fields.", "#e67e22");
+        toast('Please complete all fields.', '#e67e22');
         return;
       }
-
       students.push({ name, class: className, subjects });
       users[currentUser].students = students;
-      localStorage.setItem("users", JSON.stringify(users));
-
-      // Reset form
-      document.getElementById("student-name").value = "";
-      document.getElementById("student-class").value = "";
-      document.getElementById("subjects-container").innerHTML = "";
-
+      localStorage.setItem('users', JSON.stringify(users));
+      document.getElementById('student-name').value = '';
+      document.getElementById('student-class').value = '';
+      document.getElementById('subjects-container').innerHTML = '';
       renderStudents();
-      toast("Student saved!", "#2ecc71");
+      toast('Student saved!', '#2ecc71');
     }
 
     function calculateAll() {
-      students.forEach((s) => {
+      students.forEach(s => {
         const total = s.subjects.reduce((sum, sub) => sum + sub.mark, 0);
         s.average = (total / s.subjects.length).toFixed(2);
-        s.status = s.average >= 10 ? "Passed" : "Failed";
+        s.status = s.average >= 10 ? 'Passed' : 'Failed';
       });
-      toast("Averages calculated!", "#2980b9");
+      toast('Averages calculated!', '#2980b9');
       renderStudents();
     }
 
     function rankStudents() {
       students.sort((a, b) => b.average - a.average);
-      students.forEach((s, i) => (s.rank = i + 1));
-      toast("Students ranked!", "#9b59b6");
+      students.forEach((s, i) => s.rank = i + 1);
+      toast('Students ranked!', '#9b59b6');
       renderStudents();
     }
 
     function renderStudents(isRegular = false) {
-      const container = isRegular
-        ? document.getElementById("students-list-user")
-        : document.getElementById("students-list");
-      container.innerHTML = "";
-
+      const container = isRegular ? document.getElementById('students-list-user') : document.getElementById('students-list');
+      container.innerHTML = '';
       students.forEach((s, i) => {
-        const div = document.createElement("div");
-        div.className = "student-card";
+        const div = document.createElement('div');
+        div.className = 'student-card';
         div.innerHTML = `<h3>${s.name} (${s.class})</h3>
-          ${s.subjects.map((sub) => `<p>${sub.name}: ${sub.mark}</p>`).join("")}
-          <p>Average: ${s.average || "N/A"} | Status: ${s.status || "N/A"} | Rank: ${
-          s.rank || "N/A"
-        }</p>
+          ${s.subjects.map(sub => `<p>${sub.name}: ${sub.mark}</p>`).join('')}
+          <p>Average: ${s.average || 'N/A'} | Status: ${s.status || 'N/A'} | Rank: ${s.rank || 'N/A'}</p>
           <button onclick='generatePdf(${i})'>Generate Report</button>`;
         container.appendChild(div);
       });
@@ -309,40 +259,29 @@
       const doc = new jsPDF();
 
       doc.setFontSize(12);
-      doc.text("ABC High School", 10, 10);
-      doc.text("Academic Year: 2024/2025", 150, 10, { align: "right" });
+      doc.text('ABC High School', 10, 10);
+      doc.text('Academic Year: 2024/2025', 150, 10, { align: 'right' });
 
       doc.setFontSize(16);
-      doc.text("Student Report Card", 105, 20, { align: "center" });
+      doc.text('Student Report Card', 105, 20, { align: 'center' });
 
       doc.setFontSize(12);
       doc.text(`Name: ${s.name}`, 10, 30);
       doc.text(`Class: ${s.class}`, 10, 40);
-      doc.text(`Average: ${s.average || "N/A"}`, 10, 50);
-      doc.text(`Status: ${s.status || "N/A"}`, 10, 60);
-      doc.text(`Rank: ${s.rank || "N/A"}`, 10, 70);
+      doc.text(`Average: ${s.average || 'N/A'}`, 10, 50);
+      doc.text(`Status: ${s.status || 'N/A'}`, 10, 60);
+      doc.text(`Rank: ${s.rank || 'N/A'}`, 10, 70);
 
-      doc.autoTable({
-        startY: 80,
-        head: [["Subject", "Mark"]],
-        body: s.subjects.map((sub) => [sub.name, sub.mark]),
-      });
+      doc.autoTable({ startY: 80, head: [['Subject', 'Mark']], body: s.subjects.map(sub => [sub.name, sub.mark]) });
 
       const pageHeight = doc.internal.pageSize.height;
       doc.setFontSize(10);
-      doc.text("Powered by Student Report System", 105, pageHeight - 10, {
-        align: "center",
-      });
+      doc.text('Powered by Student Report System', 105, pageHeight - 10, { align: 'center' });
 
       doc.save(`${s.name}_Report.pdf`);
     }
 
     function generateAllPDF() {
-      if (students.length === 0) {
-        toast("No students to generate reports for", "#e74c3c");
-        return;
-      }
-
       students.forEach((_, i) => generatePdf(i));
     }
   </script>
