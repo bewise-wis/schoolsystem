@@ -1,198 +1,233 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Report Card System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f9f9f9;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    header {
-      background-color: #2c3e50;
-      color: white;
-      width: 100%;
-      padding: 20px 0;
-      text-align: center;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    main {
-      max-width: 800px;
-      width: 100%;
+      max-width: 1000px;
+      margin: 0 auto;
       padding: 20px;
+      background-color: #f9f9f9;
+    }
+    h1 {
+      text-align: center;
+      color: #2c3e50;
     }
     .panel, .auth-panel {
-      background-color: white;
+      background-color: #ffffff;
       border-radius: 8px;
       padding: 20px;
       margin-bottom: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     }
-    h1, h2 {
-      margin: 0 0 20px 0;
-      color: #2c3e50;
+    .form-group, .auth-form {
+      margin-bottom: 15px;
     }
     label {
-      font-weight: bold;
-      color: #34495e;
       display: block;
       margin-bottom: 5px;
+      font-weight: bold;
     }
-    input {
+    input, select {
       width: 100%;
       padding: 10px;
-      margin-bottom: 15px;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
     button {
-      background-color: #2980b9;
-      color: white;
-      border: none;
       padding: 10px 15px;
+      border: none;
       border-radius: 4px;
+      color: #fff;
+      background-color: #3498db;
       cursor: pointer;
-      font-size: 1rem;
       transition: background-color 0.3s;
     }
     button:hover {
-      background-color: #2471a3;
+      background-color: #2980b9;
     }
-    .hidden {
-      display: none;
+    .btn-success {
+      background-color: #2ecc71;
+    }
+    .btn-success:hover {
+      background-color: #27ae60;
+    }
+    .student-card {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
     }
     .controls {
-      margin-top: 15px;
       display: flex;
       gap: 10px;
       flex-wrap: wrap;
+      margin-bottom: 20px;
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Professional Report Card System</h1>
-  </header>
-  <main>
-    <div class="auth-panel" id="auth-panel">
-      <h2>Sign In / Sign Up</h2>
-      <label for="email">Email Address</label>
-      <input type="email" id="email" placeholder="Enter your email">
-      <label for="password">Password</label>
-      <input type="password" id="password" placeholder="Enter your password">
-      <div class="controls">
-        <button id="sign-up-btn">Sign Up</button>
-        <button id="sign-in-btn">Sign In</button>
-      </div>
-    </div>
+  <h1>Student Report Card System</h1>
 
-    <div class="panel hidden" id="dashboard">
-      <h2>Welcome, <span id="user-email"></span></h2>
-      <label for="student-name">Student Name</label>
-      <input type="text" id="student-name" placeholder="Full Name">
-      <label for="student-class">Class</label>
-      <input type="text" id="student-class" placeholder="e.g. Grade 10">
-      <label for="subject">Subject</label>
-      <input type="text" id="subject" placeholder="e.g. Mathematics">
-      <label for="mark">Mark (out of 20)</label>
-      <input type="number" id="mark" min="0" max="20">
-      <div class="controls">
-        <button id="save-report">Save Report</button>
-        <button id="generate-pdf">Generate PDF</button>
-        <button id="logout-btn">Log Out</button>
+  <div class="auth-panel" id="auth-section">
+    <h2>User Authentication</h2>
+    <div class="auth-form">
+      <input type="text" id="username" placeholder="Username">
+      <input type="password" id="password" placeholder="Password">
+      <div style="margin-top: 10px">
+        <button onclick="signIn()">Sign In</button>
+        <button class="btn-success" onclick="signUp()">Sign Up</button>
       </div>
     </div>
-  </main>
+  </div>
+
+  <div class="panel" id="main-section" style="display:none">
+    <h2>Add New Student</h2>
+    <div class="form-group">
+      <label>Student Name</label>
+      <input type="text" id="student-name">
+    </div>
+    <div class="form-group">
+      <label>Class</label>
+      <input type="text" id="student-class">
+    </div>
+    <div class="form-group">
+      <label>Subjects and Marks</label>
+      <div id="subjects-container"></div>
+      <button class="btn-success" onclick="addSubject()">Add Subject</button>
+    </div>
+    <button class="btn-success" onclick="saveStudent()">Save Student</button>
+  </div>
+
+  <div class="controls" id="controls-section" style="display:none">
+    <button onclick="calculateAll()">Calculate Averages</button>
+    <button onclick="rankStudents()">Rank Students</button>
+    <button onclick="generateAllPDF()">Generate All PDF</button>
+  </div>
+
+  <div id="students-list"></div>
 
   <script>
-    const authPanel = document.getElementById('auth-panel');
-    const dashboard = document.getElementById('dashboard');
-    const emailField = document.getElementById('email');
-    const passwordField = document.getElementById('password');
-    const userEmail = document.getElementById('user-email');
-
-    const studentNameField = document.getElementById('student-name');
-    const studentClassField = document.getElementById('student-class');
-    const subjectField = document.getElementById('subject');
-    const markField = document.getElementById('mark');
-
+    const { jsPDF } = window.jspdf;
+    let students = [];
+    let users = JSON.parse(localStorage.getItem('users')) || {};
     let currentUser = null;
-    let userReports = {};
 
-    document.getElementById('sign-up-btn').onclick = () => {
-      const email = emailField.value;
-      const password = passwordField.value;
-      if (!email || !password) return alert('Fill in all fields');
-      if (localStorage.getItem(`user-${email}`)) return alert('User already exists');
-      localStorage.setItem(`user-${email}`, JSON.stringify({ password, reports: [] }));
-      alert('Sign up successful. You may now sign in.');
-    };
+    function toast(message, color = '#3498db') {
+      Toastify({ text: message, backgroundColor: color, duration: 3000 }).showToast();
+    }
 
-    document.getElementById('sign-in-btn').onclick = () => {
-      const email = emailField.value;
-      const password = passwordField.value;
-      const userData = JSON.parse(localStorage.getItem(`user-${email}`));
-      if (!userData || userData.password !== password) return alert('Invalid credentials');
-      currentUser = email;
-      userReports = userData.reports || [];
-      userEmail.textContent = currentUser;
-      authPanel.classList.add('hidden');
-      dashboard.classList.remove('hidden');
-    };
+    function signIn() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (users[username] && users[username].password === password) {
+        currentUser = username;
+        students = users[username].students || [];
+        document.getElementById('auth-section').style.display = 'none';
+        document.getElementById('main-section').style.display = 'block';
+        document.getElementById('controls-section').style.display = 'flex';
+        toast('Signed in successfully!', '#2ecc71');
+        renderStudents();
+      } else {
+        toast('Invalid credentials', '#e74c3c');
+      }
+    }
 
-    document.getElementById('logout-btn').onclick = () => {
-      currentUser = null;
-      userReports = [];
-      dashboard.classList.add('hidden');
-      authPanel.classList.remove('hidden');
-    };
+    function signUp() {
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if (users[username]) {
+        toast('Username already exists', '#e74c3c');
+        return;
+      }
+      users[username] = { password, students: [] };
+      localStorage.setItem('users', JSON.stringify(users));
+      toast('Account created! Please sign in.', '#2ecc71');
+    }
 
-    document.getElementById('save-report').onclick = () => {
-      if (!currentUser) return;
-      const name = studentNameField.value.trim();
-      const studentClass = studentClassField.value.trim();
-      const subject = subjectField.value.trim();
-      const mark = parseFloat(markField.value);
-      if (!name || !studentClass || !subject || isNaN(mark)) return alert('All fields are required.');
+    function addSubject() {
+      const div = document.createElement('div');
+      div.innerHTML = `<input placeholder="Subject" class="subject-name"/> <input type="number" placeholder="Mark" class="subject-mark"/>`;
+      document.getElementById('subjects-container').appendChild(div);
+    }
 
-      userReports.push({ name, class: studentClass, subject, mark });
-      localStorage.setItem(`user-${currentUser}`, JSON.stringify({
-        password: JSON.parse(localStorage.getItem(`user-${currentUser}`)).password,
-        reports: userReports
-      }));
-      alert('Report saved successfully.');
-    };
-
-    document.getElementById('generate-pdf').onclick = () => {
-      if (!currentUser || userReports.length === 0) return alert('No reports available');
-      const doc = new jsPDF();
-      doc.setFontSize(16);
-      doc.text("Academic Report Cards", 105, 20, { align: 'center' });
-      doc.setFontSize(12);
-      doc.autoTable({
-        startY: 30,
-        head: [['Name', 'Class', 'Subject', 'Mark (out of 20)', 'Grade']],
-        body: userReports.map(r => [r.name, r.class, r.subject, r.mark, getGrade(r.mark)]),
-        theme: 'grid'
+    function saveStudent() {
+      const name = document.getElementById('student-name').value.trim();
+      const className = document.getElementById('student-class').value.trim();
+      const subjectEls = document.querySelectorAll('#subjects-container div');
+      const subjects = [];
+      subjectEls.forEach(row => {
+        const name = row.querySelector('.subject-name').value.trim();
+        const mark = parseFloat(row.querySelector('.subject-mark').value);
+        if (name && !isNaN(mark)) subjects.push({ name, mark });
       });
-      doc.save(`ReportCards_${currentUser}.pdf`);
-    };
+      if (!name || !className || subjects.length === 0) {
+        toast('Please complete all fields.', '#e67e22');
+        return;
+      }
+      students.push({ name, class: className, subjects });
+      users[currentUser].students = students;
+      localStorage.setItem('users', JSON.stringify(users));
+      document.getElementById('student-name').value = '';
+      document.getElementById('student-class').value = '';
+      document.getElementById('subjects-container').innerHTML = '';
+      renderStudents();
+      toast('Student saved!', '#2ecc71');
+    }
 
-    function getGrade(mark) {
-      if (mark >= 18) return 'A+';
-      if (mark >= 16) return 'A';
-      if (mark >= 14) return 'B';
-      if (mark >= 12) return 'C';
-      if (mark >= 10) return 'D';
-      return 'F';
+    function calculateAll() {
+      students.forEach(s => {
+        const total = s.subjects.reduce((sum, sub) => sum + sub.mark, 0);
+        s.average = (total / s.subjects.length).toFixed(2);
+        s.status = s.average >= 10 ? 'Passed' : 'Failed';
+      });
+      toast('Averages calculated!', '#2980b9');
+      renderStudents();
+    }
+
+    function rankStudents() {
+      students.sort((a, b) => b.average - a.average);
+      students.forEach((s, i) => s.rank = i + 1);
+      toast('Students ranked!', '#9b59b6');
+      renderStudents();
+    }
+
+    function renderStudents() {
+      const container = document.getElementById('students-list');
+      container.innerHTML = '';
+      students.forEach((s, i) => {
+        const div = document.createElement('div');
+        div.className = 'student-card';
+        div.innerHTML = `<h3>${s.name} (${s.class})</h3>
+          ${s.subjects.map(sub => `<p>${sub.name}: ${sub.mark}</p>`).join('')}
+          <p>Average: ${s.average || 'N/A'} | Status: ${s.status || 'N/A'} | Rank: ${s.rank || 'N/A'}</p>
+          <button onclick='generatePdf(${i})'>Generate Report</button>`;
+        container.appendChild(div);
+      });
+    }
+
+    function generatePdf(index) {
+      const s = students[index];
+      const doc = new jsPDF();
+      doc.text(`Report Card: ${s.name}`, 10, 10);
+      doc.text(`Class: ${s.class}`, 10, 20);
+      doc.text(`Average: ${s.average || 'N/A'}`, 10, 30);
+      doc.text(`Status: ${s.status || 'N/A'}`, 10, 40);
+      doc.text(`Rank: ${s.rank || 'N/A'}`, 10, 50);
+      doc.autoTable({ startY: 60, head: [['Subject', 'Mark']], body: s.subjects.map(sub => [sub.name, sub.mark]) });
+      doc.save(`${s.name}_Report.pdf`);
+    }
+
+    function generateAllPDF() {
+      students.forEach((_, i) => generatePdf(i));
     }
   </script>
 </body>
