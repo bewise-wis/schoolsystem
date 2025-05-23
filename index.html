@@ -1,187 +1,281 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EduTrack Pro - Student Management</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+    <!-- Keep existing head content -->
     <style>
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --success-color: #27ae60;
-            --danger-color: #e74c3c;
-            --light-bg: #f8f9fa;
+        /* Add these styles to existing CSS */
+        .dashboard {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.5s 0.2s forwards;
         }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: #f0f2f5;
-            min-height: 100vh;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 50px auto;
-            animation: fadeIn 0.5s ease-in;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .auth-card {
+        .student-card {
             background: white;
             border-radius: 10px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
 
-        .form-group {
-            margin-bottom: 1.5rem;
+        .student-card:hover {
+            transform: translateY(-2px);
         }
 
-        .form-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
+        .subject-row {
+            display: flex;
+            gap: 10px;
+            margin: 10px 0;
         }
 
-        .form-input:focus {
-            outline: none;
-            border-color: var(--secondary-color);
-            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        .stats-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
         }
 
-        .btn {
-            width: 100%;
-            padding: 12px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease;
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
         }
 
-        .btn-primary {
-            background: var(--secondary-color);
-            color: white;
+        .system-controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
         }
 
-        .btn-secondary {
-            background: var(--success-color);
-            color: white;
-            margin-top: 1rem;
+        .badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.9em;
         }
 
-        .hidden {
-            display: none;
+        .badge-primary {
+            background: #3498db20;
+            color: #3498db;
+        }
+
+        .badge-success {
+            background: #27ae6020;
+            color: #27ae60;
+        }
+
+        .badge-danger {
+            background: #e74c3c20;
+            color: #e74c3c;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="auth-card" id="authSection">
-            <h2 style="text-align: center; margin-bottom: 2rem;">EduTrack Pro</h2>
-            <div class="form-group">
-                <input type="text" id="username" class="form-input" placeholder="Username" required>
-            </div>
-            <div class="form-group">
-                <input type="password" id="password" class="form-input" placeholder="Password" required>
-            </div>
-            <div class="form-group">
-                <select id="role" class="form-input" onchange="toggleAdminField()">
-                    <option value="user">Regular User</option>
-                    <option value="admin">Administrator</option>
-                </select>
-            </div>
-            <div class="form-group hidden" id="adminKeyGroup">
-                <input type="password" id="adminKey" class="form-input" placeholder="Admin Secret Key">
-            </div>
-            <button class="btn btn-primary" onclick="handleAuth(event)">Sign In</button>
-            <button class="btn btn-secondary" onclick="toggleSignUp(event)">Create New Account</button>
+    <!-- Keep auth section -->
+
+    <div class="dashboard" id="dashboard">
+        <div class="system-controls">
+            <button class="btn btn-primary" onclick="showStudentForm()">Add New Student</button>
+            <button class="btn btn-success" onclick="calculateAll()">Calculate Averages</button>
+            <button class="btn btn-secondary" onclick="rankStudents()">Rank Students</button>
+            <button class="btn btn-danger" onclick="generateAllPDF()">Export All Reports</button>
+            <button class="btn" onclick="signOut()" style="margin-left: auto;">Sign Out</button>
         </div>
+
+        <div class="stats-card">
+            <h3>Class Statistics</h3>
+            <div class="grid-container">
+                <div>
+                    <p>Total Students: <span id="totalStudents">0</span></p>
+                    <p>Class Average: <span id="classAverage">0.00</span></p>
+                </div>
+                <div>
+                    <p>Top Student: <span id="topStudent">-</span></p>
+                    <p>Pass Rate: <span id="passRate">0%</span></p>
+                </div>
+            </div>
+        </div>
+
+        <div id="studentForm" class="hidden">
+            <div class="stats-card">
+                <h3>Add New Student</h3>
+                <div class="form-group">
+                    <input type="text" id="studentName" class="form-input" placeholder="Student Full Name">
+                </div>
+                <div class="form-group">
+                    <select id="studentClass" class="form-input">
+                        <option value="Grade 9">Grade 9</option>
+                        <option value="Grade 10">Grade 10</option>
+                        <option value="Grade 11">Grade 11</option>
+                        <option value="Grade 12">Grade 12</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <h4>Subjects</h4>
+                    <div id="subjectsContainer"></div>
+                    <button class="btn btn-secondary" onclick="addSubject()">Add Subject</button>
+                </div>
+                <div class="system-controls">
+                    <button class="btn btn-success" onclick="saveStudent()">Save Student</button>
+                    <button class="btn btn-danger" onclick="hideStudentForm()">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="studentsList" class="grid-container"></div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
     <script>
-        // Database initialization
-        let users = JSON.parse(localStorage.getItem('users') || '{}');
-        const ADMIN_KEY = 'beWise@';
-        let isSignUpMode = false;
+        // Add these functions to existing JavaScript
+        let currentUser = null;
+        let students = [];
 
-        // UI Functions
-        function toggleAdminField() {
-            const role = document.getElementById('role').value;
-            document.getElementById('adminKeyGroup').classList.toggle('hidden', role !== 'admin');
+        function showDashboard() {
+            document.getElementById('authSection').classList.add('hidden');
+            document.getElementById('dashboard').style.display = 'block';
+            loadUserData();
         }
 
-        function toggleSignUp(e) {
-            e.preventDefault();
-            isSignUpMode = !isSignUpMode;
-            const signUpBtn = document.querySelector('.btn-secondary');
-            const mainBtn = document.querySelector('.btn-primary');
-            
-            if (isSignUpMode) {
-                signUpBtn.textContent = 'Already have an account?';
-                mainBtn.textContent = 'Sign Up';
-            } else {
-                signUpBtn.textContent = 'Create New Account';
-                mainBtn.textContent = 'Sign In';
+        function loadUserData() {
+            students = users[currentUser].students || [];
+            updateStatistics();
+            renderStudents();
+        }
+
+        function showStudentForm() {
+            document.getElementById('studentForm').classList.remove('hidden');
+            document.getElementById('studentsList').classList.add('hidden');
+        }
+
+        function hideStudentForm() {
+            document.getElementById('studentForm').classList.add('hidden');
+            document.getElementById('studentsList').classList.remove('hidden');
+        }
+
+        function addSubject() {
+            const container = document.getElementById('subjectsContainer');
+            const div = document.createElement('div');
+            div.className = 'subject-row';
+            div.innerHTML = `
+                <input type="text" class="form-input" placeholder="Subject Name" style="flex:2">
+                <input type="number" class="form-input" placeholder="Mark" min="0" max="100" step="0.1" style="flex:1">
+                <button class="btn btn-danger" onclick="this.parentElement.remove()">×</button>
+            `;
+            container.appendChild(div);
+        }
+
+        function saveStudent() {
+            const student = {
+                name: document.getElementById('studentName').value.trim(),
+                className: document.getElementById('studentClass').value,
+                subjects: [],
+                id: Date.now().toString()
+            };
+
+            document.querySelectorAll('#subjectsContainer .subject-row').forEach(row => {
+                const subject = row.querySelector('input[type="text"]').value.trim();
+                const mark = parseFloat(row.querySelector('input[type="number"]').value);
+                if (subject && !isNaN(mark)) student.subjects.push({ subject, mark });
+            });
+
+            if (!student.name || student.subjects.length === 0) {
+                showError('Please fill all required fields');
+                return;
             }
+
+            students.push(student);
+            users[currentUser].students = students;
+            localStorage.setItem('users', JSON.stringify(users));
+            
+            hideStudentForm();
+            updateStatistics();
+            renderStudents();
+            showSuccess('Student record saved!');
+        }
+
+        function renderStudents() {
+            const container = document.getElementById('studentsList');
+            container.innerHTML = '';
+            
+            students.forEach((student, index) => {
+                const card = document.createElement('div');
+                card.className = 'student-card';
+                card.innerHTML = `
+                    <h3>${student.name} <span class="badge badge-primary">${student.className}</span></h3>
+                    ${student.subjects.map(sub => `
+                        <p>${sub.subject}: <strong>${sub.mark}</strong></p>
+                    `).join('')}
+                    ${student.average ? `
+                        <p>Average: <strong>${student.average}</strong></p>
+                        <p>Status: <span class="badge ${student.average >= 60 ? 'badge-success' : 'badge-danger'}">
+                            ${student.status}
+                        </span></p>
+                    ` : ''}
+                    <div class="system-controls" style="margin-top:15px">
+                        <button class="btn btn-secondary" onclick="generatePdf(${index})">PDF Report</button>
+                        <button class="btn btn-danger" onclick="deleteStudent(${index})">Delete</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function calculateAll() {
+            students.forEach(student => {
+                const total = student.subjects.reduce((sum, sub) => sum + sub.mark, 0);
+                student.average = (total / student.subjects.length).toFixed(2);
+                student.status = student.average >= 60 ? 'Pass' : 'Fail';
+            });
+            updateStatistics();
+            renderStudents();
+            showSuccess('Averages calculated!');
+        }
+
+        function rankStudents() {
+            students.sort((a, b) => b.average - a.average);
+            students.forEach((student, index) => student.rank = index + 1);
+            renderStudents();
+            showSuccess('Ranking updated!');
+        }
+
+        function updateStatistics() {
+            document.getElementById('totalStudents').textContent = students.length;
+            
+            const averages = students.map(s => parseFloat(s.average)).filter(a => !isNaN(a));
+            const classAverage = averages.length ? 
+                (averages.reduce((a, b) => a + b, 0) / averages.length).toFixed(2) : 0;
+            document.getElementById('classAverage').textContent = classAverage;
+
+            const passed = students.filter(s => s.status === 'Pass').length;
+            const passRate = students.length ? ((passed / students.length) * 100).toFixed(1) : 0;
+            document.getElementById('passRate').textContent = `${passRate}%`;
+
+            const topStudent = students.sort((a, b) => b.average - a.average)[0];
+            document.getElementById('topStudent').textContent = topStudent?.name || '-';
+        }
+
+        function deleteStudent(index) {
+            if (confirm('Delete this student record?')) {
+                students.splice(index, 1);
+                users[currentUser].students = students;
+                localStorage.setItem('users', JSON.stringify(users));
+                renderStudents();
+                updateStatistics();
+                showSuccess('Student record deleted');
+            }
+        }
+
+        function signOut() {
+            currentUser = null;
+            students = [];
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('authSection').classList.remove('hidden');
             clearForm();
         }
 
-        // Auth Functions
-        async function handleAuth(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value.trim();
-            const role = document.getElementById('role').value;
-            const adminKey = document.getElementById('adminKey').value;
-
-            if (!username || !password) {
-                showError('Username and password are required');
-                return;
-            }
-
-            if (isSignUpMode) {
-                await handleSignUp(username, password, role, adminKey);
-            } else {
-                handleSignIn(username, password);
-            }
-        }
-
-        async function handleSignUp(username, password, role, adminKey) {
-            if (role === 'admin' && adminKey !== ADMIN_KEY) {
-                showError('Invalid admin secret key');
-                return;
-            }
-
-            if (users[username]) {
-                showError('Username already exists');
-                return;
-            }
-
-            // Simple password hashing
-            const hashedPassword = await hashPassword(password);
-            users[username] = {
-                password: hashedPassword,
-                role,
-                createdAt: new Date().toISOString()
-            };
-
-            localStorage.setItem('users', JSON.stringify(users));
-            showSuccess('Account created successfully!');
-            toggleSignUp();
-        }
-
+        // Modify existing signIn function
         async function handleSignIn(username, password) {
             const user = users[username];
             if (!user) {
@@ -195,62 +289,12 @@
                 return;
             }
 
-            showSuccess(`Welcome back, ${username}!`);
-            // Redirect to dashboard here
+            currentUser = username;
+            showDashboard();
+            showSuccess(`Welcome ${user.role === 'admin' ? 'Admin' : 'Teacher'} ${username}!`);
         }
 
-        // Security Functions
-        async function hashPassword(password) {
-            const encoder = new TextEncoder();
-            const data = encoder.encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-            return Array.from(new Uint8Array(hashBuffer))
-                .map(b => b.toString(16).padStart(2, '0'))
-                .join('');
-        }
-
-        async function verifyPassword(password, hash) {
-            const newHash = await hashPassword(password);
-            return newHash === hash;
-        }
-
-        // Helper Functions
-        function clearForm() {
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-            document.getElementById('adminKey').value = '';
-        }
-
-        function showError(message) {
-            Toastify({
-                text: message,
-                backgroundColor: '#e74c3c',
-                duration: 3000,
-                close: true,
-                gravity: 'top',
-                style: {
-                    borderRadius: '8px',
-                    padding: '12px 20px'
-                }
-            }).showToast();
-        }
-
-        function showSuccess(message) {
-            Toastify({
-                text: message,
-                backgroundColor: '#27ae60',
-                duration: 3000,
-                close: true,
-                gravity: 'top',
-                style: {
-                    borderRadius: '8px',
-                    padding: '12px 20px'
-                }
-            }).showToast();
-        }
-
-        // Initialize
-        document.getElementById('username').focus();
+        // Keep PDF generation functions from previous implementation
     </script>
 </body>
 </html>
