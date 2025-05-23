@@ -1,0 +1,24 @@
+/* Add this to existing styles */
+.auth-modal.error {
+    animation: shake 0.5s;
+    border: 2px solid #e74c3c;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-10px); }
+    50% { transform: translateX(10px); }
+    75% { transform: translateX(-10px); }
+}
+
+.form-input.error {
+    border-color: #e74c3c;
+    background: #fee;
+}
+
+.error-message {
+    color: #e74c3c;
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: none;
+}
