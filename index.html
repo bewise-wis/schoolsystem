@@ -217,12 +217,29 @@
     function generatePdf(index) {
       const s = students[index];
       const doc = new jsPDF();
-      doc.text(`Report Card: ${s.name}`, 10, 10);
-      doc.text(`Class: ${s.class}`, 10, 20);
-      doc.text(`Average: ${s.average || 'N/A'}`, 10, 30);
-      doc.text(`Status: ${s.status || 'N/A'}`, 10, 40);
-      doc.text(`Rank: ${s.rank || 'N/A'}`, 10, 50);
-      doc.autoTable({ startY: 60, head: [['Subject', 'Mark']], body: s.subjects.map(sub => [sub.name, sub.mark]) });
+
+      // Header layout
+      doc.setFontSize(12);
+      doc.text('ABC High School', 10, 10);
+      doc.text('Academic Year: 2024/2025', 150, 10, { align: 'right' });
+
+      doc.setFontSize(16);
+      doc.text('Student Report Card', 105, 20, { align: 'center' });
+
+      doc.setFontSize(12);
+      doc.text(`Name: ${s.name}`, 10, 30);
+      doc.text(`Class: ${s.class}`, 10, 40);
+      doc.text(`Average: ${s.average || 'N/A'}`, 10, 50);
+      doc.text(`Status: ${s.status || 'N/A'}`, 10, 60);
+      doc.text(`Rank: ${s.rank || 'N/A'}`, 10, 70);
+
+      doc.autoTable({ startY: 80, head: [['Subject', 'Mark']], body: s.subjects.map(sub => [sub.name, sub.mark]) });
+
+      // Footer logo
+      const pageHeight = doc.internal.pageSize.height;
+      doc.setFontSize(10);
+      doc.text('Powered by Student Report System', 105, pageHeight - 10, { align: 'center' });
+
       doc.save(`${s.name}_Report.pdf`);
     }
 
