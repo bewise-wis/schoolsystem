@@ -37,8 +37,8 @@
       font-weight: bold;
     }
     input, select {
-      width: 90%;
-      margin: 13px;
+      margin: 10px;
+      width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
       border-radius: 4px;
@@ -89,12 +89,12 @@
     <div class="auth-form">
       <input type="text" id="username" placeholder="Username">
       <input type="password" id="password" placeholder="Password">
-      <!--select id="role">
+      <select id="role">
         <option value="regular">Regular User</option>
         <option value="teacher">Teacher</option>
         <option value="admin">Admin</option>
       </select>
-      <input type="text" id="secret-key" placeholder="Secret Key (required for teacher/admin)"-->
+      <input type="text" id="secret-key" placeholder="Secret Key (required for teacher/admin)">
       <div style="margin-top: 10px">
         <button onclick="signIn()">Sign In</button>
         <button class="btn-success" onclick="signUp()">Sign Up</button>
