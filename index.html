@@ -1,170 +1,258 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Existing meta tags and styles remain the same -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EduTrack Pro - Student Management System</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
   <style>
-    /* Add new styles for logs section */
-    .log-entry {
-      padding: 8px;
-      margin: 5px 0;
-      background-color: #f8f9fa;
-      border-radius: 4px;
-      font-family: monospace;
+    :root {
+      --primary-color: #2c3e50;
+      --secondary-color: #3498db;
+      --success-color: #27ae60;
+      --danger-color: #e74c3c;
+      --light-bg: #f8f9fa;
     }
-    #role {
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .auth-modal {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+      padding: 2rem;
+      max-width: 400px;
+      margin: 2rem auto;
+      transform: translateY(20px);
+      opacity: 0;
+      animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+
+    @keyframes slideUp {
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      position: relative;
+    }
+
+    .form-label {
+      display: block;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      color: var(--primary-color);
+    }
+
+    .form-input {
       width: 100%;
-      padding: 10px;
-      margin-top: 10px;
+      padding: 0.875rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--secondary-color);
+      box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+    }
+
+    .btn {
+      padding: 0.875rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn-primary {
+      background: var(--secondary-color);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: var(--success-color);
+      color: white;
+    }
+
+    .admin-key-container {
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease-out;
+    }
+
+    .spinner {
+      animation: spin 1s linear infinite;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .dashboard-section {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin: 2rem 0;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeInUp 0.4s 0.2s forwards;
+    }
+
+    @keyframes fadeInUp {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Student Report Card System</h1>
-
-  <div class="auth-panel" id="auth-section">
-    <h2>User Authentication</h2>
-    <div class="auth-form">
-      <input type="text" id="username" placeholder="Username">
-      <input type="password" id="password" placeholder="Password">
-      <select id="role">
-        <option value="user">Regular User</option>
-        <option value="admin">Admin/Teacher</option>
-      </select>
-      <div style="margin-top: 10px">
-        <button onclick="signIn()">Sign In</button>
-        <button class="btn-success" onclick="signUp()">Sign Up</button>
+  <div class="container">
+    <div class="auth-modal" id="auth-section">
+      <h2 style="text-align: center; margin-bottom: 2rem;">Welcome to EduTrack Pro</h2>
+      <div class="form-group">
+        <input type="text" id="username" class="form-input" placeholder="Enter your username">
+      </div>
+      <div class="form-group">
+        <input type="password" id="password" class="form-input" placeholder="Enter your password">
+      </div>
+      <div class="form-group">
+        <select id="role" class="form-input" onchange="toggleAdminKey()">
+          <option value="user">Regular User</option>
+          <option value="admin">Administrator/Teacher</option>
+        </select>
+      </div>
+      <div class="admin-key-container" id="adminKeyContainer">
+        <div class="form-group">
+          <input type="password" id="adminKey" class="form-input" placeholder="Enter admin secret key">
+        </div>
+      </div>
+      <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+        <button class="btn btn-primary" onclick="signIn()" id="signInBtn">
+          <span class="btn-text">Sign In</span>
+        </button>
+        <button class="btn btn-success" onclick="signUp()" id="signUpBtn">
+          <span class="btn-text">Sign Up</span>
+        </button>
       </div>
     </div>
-  </div>
 
-  <!-- Add logs panel -->
-  <div class="panel" id="logs-section" style="display:none">
-    <h2>Activity Logs</h2>
-    <div id="logs-list"></div>
+    <!-- Rest of the dashboard sections remain similar with updated styling -->
   </div>
-
-  <!-- Existing panels remain the same -->
 
   <script>
-    // Initialize crypto object
-    const crypto = window.crypto || window.msCrypto;
-
-    // Password hashing function
-    async function hashPassword(password) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    // Activity logging function
-    function logAction(action, details = null) {
-      const logs = JSON.parse(localStorage.getItem('logs')) || [];
-      logs.push({
-        timestamp: new Date().toISOString(),
-        user: currentUser,
-        action,
-        details
-      });
-      localStorage.setItem('logs', JSON.stringify(logs));
-      if (users[currentUser]?.role === 'admin') renderLogs();
-    }
-
-    // Render logs function
-    function renderLogs() {
-      const logs = JSON.parse(localStorage.getItem('logs')) || [];
-      const container = document.getElementById('logs-list');
-      container.innerHTML = '';
-      logs.forEach(log => {
-        const div = document.createElement('div');
-        div.className = 'log-entry';
-        div.textContent = `${new Date(log.timestamp).toLocaleString()} [${log.user}] ${log.action}`;
-        container.appendChild(div);
-      });
-    }
-
-    // Modified signIn function
-    async function signIn() {
-      try {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const hashedPassword = await hashPassword(password);
-
-        if (users[username] && users[username].password === hashedPassword) {
-          currentUser = username;
-          students = users[currentUser].students || [];
-          document.getElementById('auth-section').style.display = 'none';
-          document.getElementById('main-section').style.display = 'block';
-          document.getElementById('controls-section').style.display = 'flex';
-
-          if (users[username].role === 'admin') {
-            document.getElementById('logs-section').style.display = 'block';
-            renderLogs();
-          }
-
-          logAction('login');
-          toast('Signed in successfully!', '#2ecc71');
-          renderStudents();
-        } else {
-          toast('Invalid credentials', '#e74c3c');
-        }
-      } catch (error) {
-        toast('Login failed', '#e74c3c');
-      }
-    }
-
-    // Modified signUp function
+    // Enhanced signUp function with secret key validation
     async function signUp() {
-      try {
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const role = document.getElementById('role').value;
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const role = document.getElementById('role').value;
+      const adminKey = document.getElementById('adminKey').value;
 
+      if (role === 'admin' && adminKey !== 'beWise@') {
+        toast('Invalid admin secret key', '#e74c3c');
+        return;
+      }
+
+      toggleLoading(true);
+      
+      try {
+        const hashedPassword = await hashPassword(password);
+        
         if (users[username]) {
           toast('Username already exists', '#e74c3c');
           return;
         }
 
-        const hashedPassword = await hashPassword(password);
         users[username] = {
           password: hashedPassword,
           role: role,
-          students: []
+          students: [],
+          createdAt: new Date().toISOString()
         };
 
         localStorage.setItem('users', JSON.stringify(users));
         logAction('signup', { role });
-        toast('Account created! Please sign in.', '#2ecc71');
+        toast('Account created successfully!', '#2ecc71');
+        document.getElementById('adminKey').value = '';
       } catch (error) {
-        toast('Signup failed', '#e74c3c');
+        toast('Registration failed', '#e74c3c');
+      } finally {
+        toggleLoading(false);
       }
     }
 
-    // Modified saveStudent function with logging
-    function saveStudent() {
-      // Existing student saving logic
-      logAction('student_added', { name, className });
+    function toggleAdminKey() {
+      const role = document.getElementById('role').value;
+      const container = document.getElementById('adminKeyContainer');
+      container.style.maxHeight = role === 'admin' ? '100px' : '0';
     }
 
-    // Modified calculation functions with logging
-    function calculateAll() {
-      // Existing calculation logic
-      logAction('calculate_averages');
+    function toggleLoading(isLoading) {
+      const btns = document.querySelectorAll('#signInBtn, #signUpBtn');
+      btns.forEach(btn => {
+        btn.disabled = isLoading;
+        btn.querySelector('.btn-text').style.display = isLoading ? 'none' : 'block';
+        if (isLoading && !btn.querySelector('.spinner')) {
+          const spinner = document.createElement('div');
+          spinner.className = 'spinner';
+          btn.prepend(spinner);
+        }
+      });
     }
 
-    function rankStudents() {
-      // Existing ranking logic
-      logAction('rank_students');
+    // Modified toast function with animations
+    function toast(message, color = '#3498db') {
+      Toastify({
+        text: message,
+        backgroundColor: color,
+        duration: 3000,
+        close: true,
+        gravity: 'top',
+        position: 'right',
+        style: {
+          borderRadius: '8px',
+          fontFamily: 'Inter',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+        }
+      }).showToast();
     }
 
-    // Modified PDF generation with logging
-    function generatePdf(index) {
-      // Existing PDF generation logic
-      logAction('generate_report', { student: students[index].name });
-    }
-
-    // Rest of the existing code remains the same
+    // Rest of the existing functionality with updated styling
   </script>
 </body>
 </html>
