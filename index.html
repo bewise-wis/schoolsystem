@@ -14,19 +14,25 @@
       max-width: 1000px;
       margin: 0 auto;
       padding: 20px;
-      background-color: #f4f6f8;
+      background: linear-gradient(to right, #ece9e6, #ffffff);
+      animation: fadeIn 1s ease-in;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
     h1 {
       text-align: center;
       color: #2c3e50;
+      animation: fadeIn 1.5s ease-in;
     }
-    .panel, .auth-panel, .user-panel {
+    .panel, .auth-panel {
       background-color: #ffffff;
-      border-radius: 8px;
-      padding: 20px;
+      border-radius: 12px;
+      padding: 25px;
       margin-bottom: 20px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s ease-in-out;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      animation: fadeIn 1s ease-in;
     }
     .form-group, .auth-form {
       margin-bottom: 15px;
@@ -37,28 +43,28 @@
       font-weight: bold;
     }
     input, select {
-      margin: 10px;
       width: 100%;
       padding: 10px;
       border: 1px solid #ccc;
-      border-radius: 4px;
-      transition: border-color 0.3s;
+      border-radius: 6px;
+      transition: border-color 0.3s ease;
     }
     input:focus, select:focus {
-      border-color: #2980b9;
+      border-color: #3498db;
       outline: none;
     }
     button {
       padding: 10px 15px;
       border: none;
-      border-radius: 4px;
+      border-radius: 6px;
       color: #fff;
       background-color: #3498db;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
     button:hover {
       background-color: #2980b9;
+      transform: scale(1.02);
     }
     .btn-success {
       background-color: #2ecc71;
@@ -69,9 +75,13 @@
     .student-card {
       background-color: #fff;
       padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      border-radius: 10px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.1);
       margin-bottom: 15px;
+      transition: transform 0.3s;
+    }
+    .student-card:hover {
+      transform: translateY(-5px);
     }
     .controls {
       display: flex;
@@ -90,11 +100,11 @@
       <input type="text" id="username" placeholder="Username">
       <input type="password" id="password" placeholder="Password">
       <select id="role">
-        <option value="regular">Regular User</option>
+        <option value="user">Regular User</option>
         <option value="teacher">Teacher</option>
         <option value="admin">Admin</option>
       </select>
-      <input type="text" id="secret-key" placeholder="Secret Key (required for teacher/admin)">
+      <input type="password" id="secret" placeholder="Secret Key (Only for first signup)" style="margin-top: 10px;">
       <div style="margin-top: 10px">
         <button onclick="signIn()">Sign In</button>
         <button class="btn-success" onclick="signUp()">Sign Up</button>
@@ -126,11 +136,6 @@
     <button onclick="generateAllPDF()">Generate All PDF</button>
   </div>
 
-  <div class="user-panel" id="user-section" style="display:none">
-    <h2>View Student Reports</h2>
-    <div id="students-list-user"></div>
-  </div>
-
   <div id="students-list"></div>
 
   <script>
@@ -150,15 +155,10 @@
         currentUser = username;
         students = users[username].students || [];
         document.getElementById('auth-section').style.display = 'none';
-        if (users[username].role === 'regular') {
-          document.getElementById('user-section').style.display = 'block';
-          renderStudents(true);
-        } else {
-          document.getElementById('main-section').style.display = 'block';
-          document.getElementById('controls-section').style.display = 'flex';
-          renderStudents();
-        }
+        document.getElementById('main-section').style.display = 'block';
+        document.getElementById('controls-section').style.display = 'flex';
         toast('Signed in successfully!', '#2ecc71');
+        renderStudents();
       } else {
         toast('Invalid credentials', '#e74c3c');
       }
@@ -168,29 +168,23 @@
       const username = document.getElementById('username').value.trim();
       const password = document.getElementById('password').value.trim();
       const role = document.getElementById('role').value;
-      const secret = document.getElementById('secret-key').value.trim();
+      const secret = document.getElementById('secret').value.trim();
       if (users[username]) {
         toast('Username already exists', '#e74c3c');
         return;
       }
-      if ((role === 'teacher' || role === 'admin') && secret !== 'bewise@') {
-        toast('Invalid secret key for ' + role, '#e74c3c');
+      if ((role === 'admin' || role === 'teacher') && secret !== 'bewise@') {
+        toast('Secret key required for admin/teacher sign up', '#e67e22');
         return;
       }
       users[username] = { password, role, students: [] };
       localStorage.setItem('users', JSON.stringify(users));
-      toast('Account created & signed in!', '#2ecc71');
       currentUser = username;
       students = [];
       document.getElementById('auth-section').style.display = 'none';
-      if (role === 'regular') {
-        document.getElementById('user-section').style.display = 'block';
-        renderStudents(true);
-      } else {
-        document.getElementById('main-section').style.display = 'block';
-        document.getElementById('controls-section').style.display = 'flex';
-        renderStudents();
-      }
+      document.getElementById('main-section').style.display = 'block';
+      document.getElementById('controls-section').style.display = 'flex';
+      toast('Account created and logged in!', '#2ecc71');
     }
 
     function addSubject() {
@@ -240,8 +234,8 @@
       renderStudents();
     }
 
-    function renderStudents(isRegular = false) {
-      const container = isRegular ? document.getElementById('students-list-user') : document.getElementById('students-list');
+    function renderStudents() {
+      const container = document.getElementById('students-list');
       container.innerHTML = '';
       students.forEach((s, i) => {
         const div = document.createElement('div');
@@ -258,12 +252,19 @@
       const s = students[index];
       const doc = new jsPDF();
 
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+
       doc.setFontSize(12);
       doc.text('ABC High School', 10, 10);
-      doc.text('Academic Year: 2024/2025', 150, 10, { align: 'right' });
+      const rightText = 'Academic Year: 2024/2025';
+      const rightTextWidth = doc.getTextWidth(rightText);
+      doc.text(rightText, pageWidth - rightTextWidth - 10, 10);
 
       doc.setFontSize(16);
-      doc.text('Student Report Card', 105, 20, { align: 'center' });
+      const title = 'Student Report Card';
+      const titleWidth = doc.getTextWidth(title);
+      doc.text(title, (pageWidth - titleWidth) / 2, 20);
 
       doc.setFontSize(12);
       doc.text(`Name: ${s.name}`, 10, 30);
@@ -274,9 +275,10 @@
 
       doc.autoTable({ startY: 80, head: [['Subject', 'Mark']], body: s.subjects.map(sub => [sub.name, sub.mark]) });
 
-      const pageHeight = doc.internal.pageSize.height;
       doc.setFontSize(10);
-      doc.text('Powered by Student Report System', 105, pageHeight - 10, { align: 'center' });
+      const footer = 'Powered by Student Report System';
+      const footerWidth = doc.getTextWidth(footer);
+      doc.text(footer, (pageWidth - footerWidth) / 2, pageHeight - 10);
 
       doc.save(`${s.name}_Report.pdf`);
     }
